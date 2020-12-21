@@ -16,4 +16,4 @@ myTodoList.deleteItem();
 myTodoList.toggleItem();
 myTodoList.editItem();
 
-console.log('webpack starterkit');
+

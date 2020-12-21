@@ -2,6 +2,7 @@
 
 import {EventEmitter} from "./eventEmitter";
 
+
 export class Model extends EventEmitter {
     constructor() {
         super();
@@ -11,39 +12,40 @@ export class Model extends EventEmitter {
     addTodo(item) {
         if (item !== "") {
             const todo = {
-                id: Math.random(),
                 name: item,
                 completed: false,
             };
             this.todoItems.push(todo);
+            console.log(this.todoItems);
             this.emit('itemAdded', item);
         }
     }
 
-    toggleCheckTodo(id) {
+    toggleCheckTodo(id, status) {
         this.todoItems.forEach(function (item) {
             if (item.id == id) {
                 item.completed = !item.completed;
+                status = item.completed;
             }
         });
-        this.emit('itemChecked');
+        this.emit('itemChecked', [id, status]);
     }
 
     removeTodo(id) {
         this.todoItems = this.todoItems.filter(function (item) {
             return item.id != id;
         });
-        this.emit('itemRemoved');
+        this.emit('itemRemoved', id);
     }
 
     editTodo(id, updatedText) {
         this.todoItems = this.todoItems.map((todo) =>
             todo.id == id ? {id: todo.id, name: updatedText, completed: false} : todo,
         );
-        this.emit('itemEdited');
+        this.emit('itemEdited', [id, updatedText]);
     }
 
-    setTodoId (elem) {
+    getTodoId (elem) {
         this.todoItems.forEach(function(item) {
             if (elem.dataset.name == item.name) {
                 elem.setAttribute('data-key', item.id);
