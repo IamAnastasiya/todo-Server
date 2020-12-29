@@ -1,17 +1,14 @@
 "use strict";
 
+import {api} from "./apiFunc";
+
 export class Controller {
     constructor(model, view) {
         this.model = model;
         this.view = view;
 
+        this.updateTodoList();
 
-        this.updateTodoList ()
-            .then(data => {
-                this.model.todoItems.push(...data);
-                console.log(this.model.todoItems);
-                this.onTodoListChanged(this.model.todoItems);
-            });
 
         view.on('addButtonClicked',  () => this.sendDataToServer(), this.model.addTodo(this.view.input.value));
         view.on('deleteButtonClicked', (elem) => this.model.removeTodo(elem.dataset.key));
@@ -24,37 +21,23 @@ export class Controller {
         model.on('itemEdited', (args) => this.editDataOnServer(args[0], args[1]));
     }
 
-    updateTodoList () {
-        return fetch('http://localhost:8081/todos')
-            .then(res => res.json())
+    updateTodoList = () => {
+        api('http://localhost:8081/todos', {
+            method: 'GET',
+        })
             .then(data => {
-                return data;
-            })
-            .catch(err => {
-                console.log(err);
-            });
+            this.model.todoItems.push(...data);
+            console.log(this.model.todoItems);
+            this.onTodoListChanged(this.model.todoItems);
+        });
     }
 
     onTodoListChanged = () => {
         this.view.displayTodos();
     }
 
-    api (url, {headers, body, ...params}) {
-        const paramsToSend = {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                // ...headers
-            },
-            body: body ? JSON.stringify(body): undefined,
-            ...params,
-        };
-        return fetch(url, paramsToSend)
-            .then(res => res.json());
-    }
-
     sendDataToServer = () => {
-        this.api('http://localhost:8081/todos', {
+        api('http://localhost:8081/todos', {
             method: 'POST',
             body: { name: this.view.input.value, completed: false},
         })
@@ -65,14 +48,14 @@ export class Controller {
     }
 
     deleteDataFromServer = (id) => {
-        fetch(`http://localhost:8081/todos/${id}`, {
+        api(`http://localhost:8081/todos/${id}`, {
             method: 'DELETE',
         })
             .then(res => console.log("item deleted"));
     }
 
     updateDataOnServer = (id, status) => {
-        this.api(`http://localhost:8081/todos/${id}`, {
+        api(`http://localhost:8081/todos/${id}`, {
         method: 'PUT',
         body: { id: id, completed: status },
         })
@@ -82,7 +65,7 @@ export class Controller {
     }
 
     editDataOnServer = (id, updatedText) => {
-        this.api(`http://localhost:8081/todos/${id}`, {
+        api(`http://localhost:8081/todos/${id}`, {
         method: 'PUT',
         body: { id: id, name: updatedText,},
         })
